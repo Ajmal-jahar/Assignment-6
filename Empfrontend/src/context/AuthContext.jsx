@@ -1,5 +1,6 @@
+// src/context/AuthContext.js
 import React, { createContext, useContext, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosinterceptor'; // <-- imported your axios instance
 
 const AuthContext = createContext();
 
@@ -9,7 +10,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password, expectedrole) => {
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/login', { username, password });
+      const res = await axiosInstance.post('http://localhost:3000/api/auth/login', { username, password }); // removed localhost
       const { token, role } = res.data;
 
       if (role === expectedrole) {

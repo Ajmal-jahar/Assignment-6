@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosinterceptor';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Container, Card, CardMedia, CardContent, Typography, Button, Grid, TextField, Paper, Box } from '@mui/material';
+import {
+  Container,
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Button,
+  Grid,
+  TextField,
+  Box
+} from '@mui/material';
 
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
@@ -12,22 +22,23 @@ const EmployeeList = () => {
   const [form, setForm] = useState({ name: '', position: '', location: '', image: '' });
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      const res = await axios.get('http://localhost:3000/api/employees', {
-        headers: { Authorization: `Bearer ${token}` },
+    axiosInstance.get('/api/employees')
+      .then((res) => {
+        setEmployees(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
       });
-      setEmployees(res.data);
-    };
-    fetchEmployees();
   }, [token]);
 
-  const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:3000/api/employees/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setEmployees(employees.filter(emp => emp._id !== id));
+  
+  const handleDelete = (id) => {
+    axiosInstance.delete(`/api/employees/${id}`)
+      .then(() => {
+        setEmployees(prev => prev.filter(emp => emp._id !== id));
+      })
+      .catch(err => console.log(err));
   };
-
   const handleEditClick = (emp) => {
     setEditingId(emp._id);
     setForm({ name: emp.name, position: emp.position, location: emp.location, image: emp.image });
@@ -37,16 +48,19 @@ const EmployeeList = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleUpdate = async (e) => {
+  const handleUpdate = (e) => {
     e.preventDefault();
-    await axios.put(`http://localhost:3000/api/employees/${editingId}`, form, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setEditingId(null);
-    const res = await axios.get('http://localhost:3000/api/employees', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setEmployees(res.data);
+    axiosInstance.put(`/api/employees/${editingId}`, form)
+      .then(() => {
+        setEditingId(null);
+        return axiosInstance.get('/api/employees');
+      })
+      .then((res) => {
+        setEmployees(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
@@ -74,11 +88,11 @@ const EmployeeList = () => {
                     <Typography variant="h6" gutterBottom>{emp.name}</Typography>
                     <Typography variant="body1">{emp.position}</Typography>
                     <Typography variant="body2" color="text.secondary">{emp.location}</Typography>
-                    <br/>
+                    <br />
                     {role === 'admin' && (
                       <>
-                        <Button  variant="contained" color="warning" size='small' onClick={() => handleEditClick(emp)}>Update</Button>
-                        <Button  variant="contained" color="error" size='small' style={{marginLeft:'10%'}} onClick={() => handleDelete(emp._id)}>Delete</Button>
+                        <Button variant="contained" color="warning" size='small' onClick={() => handleEditClick(emp)}>Update</Button>
+                        <Button variant="contained" color="error" size='small' style={{ marginLeft: '10%' }} onClick={() => handleDelete(emp._id)}>Delete</Button>
                       </>
                     )}
                   </>
