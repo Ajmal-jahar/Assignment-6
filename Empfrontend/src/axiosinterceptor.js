@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://employee-backend-4frt.onrender.com'||'http://localhost:3000', // Or your Render API URL in production
+  baseURL: 'http://localhost:3000',
 });
 
 axiosInstance.interceptors.request.use(
